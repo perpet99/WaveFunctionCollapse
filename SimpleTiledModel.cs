@@ -16,7 +16,7 @@ using System.Collections.Generic;
 class SimpleTiledModel : Model
 {
     List<Color[]> tiles;
-    List<string> tilenames;
+    public List<string> tilenames;
     int tilesize;
     bool black;
 
@@ -197,6 +197,12 @@ class SimpleTiledModel : Model
                 propagator[d][t1] = new int[ST];
                 for (int st = 0; st < ST; st++) propagator[d][t1][st] = sp[st];
             }
+    }
+
+    internal void Select(int x , int y , int tileIndex)
+    {
+        if(observed != null)
+            observed[x + y * FMX] = tileIndex;
     }
 
     protected override bool OnBoundary(int x, int y) => !periodic && (x < 0 || y < 0 || x >= FMX || y >= FMY);

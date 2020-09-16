@@ -69,6 +69,8 @@ abstract class Model
         stacksize = 0;
     }
 
+   
+
     bool? Observe()
     {
         double min = 1E+3;
@@ -146,6 +148,27 @@ abstract class Model
             }
         }
     }
+    internal bool Run2(int seed, int limit, Action<int> action)
+    {
+        if (wave == null) Init();
+
+        Clear();
+        random = new Random(seed);
+
+        int count = 0;
+
+        for (int l = 0; l < limit || limit == 0; l++)
+        {
+            bool? result = Observe();
+            if (result != null) return (bool)result;
+            Propagate();
+
+            action(count++);
+        }
+
+        return true;
+    }
+
 
     public bool Run(int seed, int limit)
     {
