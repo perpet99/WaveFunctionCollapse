@@ -56,15 +56,13 @@ namespace WFC.Win
         private Thread thread2 = null;
         SimpleTiledModel Model;
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
-            thread2 = new Thread(new ThreadStart(SetText));
-            thread2.Start();
+            //thread2 = new Thread(new ThreadStart(SetText));
+            //thread2.Start();
             //Thread.Sleep(1000);
-        }
 
-        private async void SetText()
-        {
+            button1.Enabled = false;
 
             await Task.Run(() =>
             {
@@ -83,15 +81,88 @@ namespace WFC.Win
 
 
                         BeginInvoke((Action)(() =>
-                            {
-                                //button1.Text = path;
+                        {
+                            //button1.Text = path;
 
-                                pictureBox1.Image = Image.FromFile(path);
-                                pictureBox1.Update();
+                            pictureBox1.Image = Image.FromFile(path);
+                            pictureBox1.Update();
 
-                            }));
+                        }));
                     });
 
+
+                if (finished)
+                {
+                    Console.WriteLine("DONE");
+
+                    Model.Graphics().Save($"output.png");
+
+                    BeginInvoke((Action)(() =>
+                    {
+                        //button1.Text = path;
+                        pictureBox1.Image = FromImage($"output.png");
+                        pictureBox1.Update();
+
+                    }));
+
+
+                    //if (model is SimpleTiledModel && xelem.Get("textOutput", false))
+                    //    System.IO.File.WriteAllText($"{counter} {name} {i}.txt", (model as SimpleTiledModel).TextOutput());
+
+                    //break;
+                }
+                else Console.WriteLine("CONTRADICTION");
+
+
+                BeginInvoke((Action)(() =>
+                {
+                    button1.Enabled = true;
+
+                }));
+
+                
+
+            });
+
+
+            BeginInvoke((Action)(() =>
+            {
+                button1.Text = "Done";
+
+            }));
+
+
+        }
+
+
+        void aaaa(int count)
+        {
+            string path = $"output_{count}.png";
+
+            Model.Graphics().Save(path);
+
+
+            BeginInvoke((Action)(() =>
+            {
+                //button1.Text = path;
+
+                pictureBox1.Image = FromImage(path);
+                pictureBox1.Update();
+
+            }));
+        }
+
+        private async void SetText()
+        {
+
+            await Task.Run(() =>
+            {
+
+
+                Random random = new Random();
+                int seed = random.Next();
+
+                bool finished = Model.Run2(seed, 0, aaaa);
 
                 if (finished)
                 {
@@ -218,11 +289,13 @@ namespace WFC.Win
 
             Model.Select(x, y, listView1.SelectedIndices[0]);
 
+            Model.Run2(0, 0, aaaa);
+
             //Pro.Export("test.png");
 
-            Model.Graphics().Save($"output.png");
-            pictureBox1.Image = FromImage($"output.png");
-            pictureBox1.Update();
+            //Model.Graphics().Save($"output.png");
+            //pictureBox1.Image = FromImage($"output.png");
+            //pictureBox1.Update();
 
         }
 

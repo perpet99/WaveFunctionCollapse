@@ -12,10 +12,15 @@ abstract class Model
 {
     protected bool[][] wave;
 
+    /// <summary> D,T,t_s = t </summary>
     protected int[][][] propagator;
+    /// <summary>  I,T,D  해당위치,타일,방향으로 들어오는 가능갯수</summary>
     int[][][] compatible;
-    protected int[] observed;
 
+
+    protected int[] observed;
+    
+    /// <summary>  i,t </summary>
     (int, int)[] stack;
     int stacksize;
 
@@ -69,19 +74,20 @@ abstract class Model
         stacksize = 0;
     }
 
-   
 
-    bool? Observe()
+
+    bool? Observe(out int argmin)
     {
         double min = 1E+3;
-        int argmin = -1;
+        argmin = -1;
 
         for (int i = 0; i < wave.Length; i++)
         {
             if (OnBoundary(i % FMX, i / FMX)) continue;
 
             int amount = sumsOfOnes[i];
-            if (amount == 0) return false;
+            if (amount == 0) 
+                return false;
 
             double entropy = entropies[i];
             if (amount > 1 && entropy <= min)
@@ -98,18 +104,36 @@ abstract class Model
         if (argmin == -1)
         {
             observed = new int[FMX * FMY];
-            for (int i = 0; i < wave.Length; i++) for (int t = 0; t < T; t++) if (wave[i][t]) { observed[i] = t; break; }
+            for (int i = 0; i < wave.Length; i++)
+                for (int t = 0; t < T; t++)
+                    if (wave[i][t])
+                    {
+                        observed[i] = t;
+                        break;
+                    }
             return true;
         }
 
-        double[] distribution = new double[T];
-        for (int t = 0; t < T; t++) distribution[t] = wave[argmin][t] ? weights[t] : 0;
-        int r = distribution.Random(random.NextDouble());
+        return null;
+    }
+
+    void Observe2(int argmin,int r = -1)
+    { 
+        if( r == -1)
+        {
+            double[] distribution = new double[T];
+            for (int t = 0; t < T; t++)
+                distribution[t] = wave[argmin][t] ? weights[t] : 0;
+
+            r = distribution.Random(random.NextDouble());
+        }
 
         bool[] w = wave[argmin];
-        for (int t = 0; t < T; t++) if (w[t] != (t == r)) Ban(argmin, t);
+        for (int t = 0; t < T; t++) 
+            if (w[t] != (t == r)) 
+                Ban(argmin, t);
 
-        return null;
+        //return null;
     }
 
     protected void Propagate()
@@ -143,49 +167,62 @@ abstract class Model
                     int[] comp = compat[t2];
 
                     comp[d]--;
-                    if (comp[d] == 0) Ban(i2, t2);
+                    if (comp[d] == 0) 
+                        Ban(i2, t2);
                 }
             }
         }
     }
     internal bool Run2(int seed, int limit, Action<int> action)
     {
-        if (wave == null) Init();
+        if (wave == null)
+        {
+            Init();
+            Clear();
+        }
 
-        Clear();
         random = new Random(seed);
 
-        int count = 0;
+        //int count = 0;
 
         for (int l = 0; l < limit || limit == 0; l++)
         {
-            bool? result = Observe();
-            if (result != null) return (bool)result;
-            Propagate();
 
-            action(count++);
+            bool? result = Observe(out var index);
+            if (result != null)
+                return (bool)result;
+
+           NewMethod(index, -1);
+
+            action(index);
         }
 
         return true;
+      
     }
-
-
-    public bool Run(int seed, int limit)
+    public void NewMethod(int index, int t)
     {
-        if (wave == null) Init();
+        Observe2(index,t);
 
-        Clear();
-        random = new Random(seed);
-
-        for (int l = 0; l < limit || limit == 0; l++)
-        {
-            bool? result = Observe();
-            if (result != null) return (bool)result;
-            Propagate();
-        }
-
-        return true;
+        Propagate();
     }
+
+    //public bool Run(int seed, int limit)
+    //{
+    //    if (wave == null) Init();
+
+    //    Clear();
+    //    random = new Random(seed);
+
+    //    for (int l = 0; l < limit || limit == 0; l++)
+    //    {
+    //        bool? result = Observe();
+    //        if (result != null) return (bool)result;
+    //        Propagate();
+    //    }
+
+    //    return true;
+    //}
 
     protected void Ban(int i, int t)
     {
@@ -208,17 +245,24 @@ abstract class Model
     {
         for (int i = 0; i < wave.Length; i++)
         {
-            for (int t = 0; t < T; t++)
-            {
-                wave[i][t] = true;
-                for (int d = 0; d < 4; d++) compatible[i][t][d] = propagator[opposite[d]][t].Length;
-            }
-
-            sumsOfOnes[i] = weights.Length;
-            sumsOfWeights[i] = sumOfWeights;
-            sumsOfWeightLogWeights[i] = sumOfWeightLogWeights;
-            entropies[i] = startingEntropy;
+            Clear(i);
         }
+    }
+
+    protected void Clear(int i)
+    {
+        for (int t = 0; t < T; t++)
+        {
+            wave[i][t] = true;
+            for (int d = 0; d < 4; d++)
+                compatible[i][t][d] = propagator[opposite[d]][t].Length;
+        }
+
+        sumsOfOnes[i] = weights.Length;
+        sumsOfWeights[i] = sumOfWeights;
+        sumsOfWeightLogWeights[i] = sumOfWeightLogWeights;
+        entropies[i] = startingEntropy;
+
     }
 
     protected abstract bool OnBoundary(int x, int y);

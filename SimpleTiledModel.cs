@@ -137,7 +137,8 @@ class SimpleTiledModel : Model
                 }
             }
 
-            for (int t = 0; t < cardinality; t++) tempStationary.Add(xtile.Get("weight", 1.0f));
+            for (int t = 0; t < cardinality; t++) 
+                tempStationary.Add(xtile.Get("weight", 1.0f));
         }
 
         T = action.Count;
@@ -174,35 +175,58 @@ class SimpleTiledModel : Model
         }
 
         for (int t2 = 0; t2 < T; t2++) for (int t1 = 0; t1 < T; t1++)
-            {
-                tempPropagator[2][t2][t1] = tempPropagator[0][t1][t2];
-                tempPropagator[3][t2][t1] = tempPropagator[1][t1][t2];
-            }
+        {
+            tempPropagator[2][t2][t1] = tempPropagator[0][t1][t2];
+            tempPropagator[3][t2][t1] = tempPropagator[1][t1][t2];
+        }
 
         List<int>[][] sparsePropagator = new List<int>[4][];
         for (int d = 0; d < 4; d++)
         {
             sparsePropagator[d] = new List<int>[T];
-            for (int t = 0; t < T; t++) sparsePropagator[d][t] = new List<int>();
+            for (int t = 0; t < T; t++) 
+                sparsePropagator[d][t] = new List<int>();
         }
 
-        for (int d = 0; d < 4; d++) for (int t1 = 0; t1 < T; t1++)
+        for (int d = 0; d < 4; d++) 
+            for (int t1 = 0; t1 < T; t1++)
             {
                 List<int> sp = sparsePropagator[d][t1];
                 bool[] tp = tempPropagator[d][t1];
 
-                for (int t2 = 0; t2 < T; t2++) if (tp[t2]) sp.Add(t2);
+                for (int t2 = 0; t2 < T; t2++) 
+                    if (tp[t2]) 
+                        sp.Add(t2);
 
                 int ST = sp.Count;
                 propagator[d][t1] = new int[ST];
-                for (int st = 0; st < ST; st++) propagator[d][t1][st] = sp[st];
+                for (int st = 0; st < ST; st++) 
+                    propagator[d][t1][st] = sp[st];
             }
     }
 
-    internal void Select(int x , int y , int tileIndex)
+    internal void Select(int x, int y, int tileIndex)
     {
-        if(observed != null)
-            observed[x + y * FMX] = tileIndex;
+
+
+        int index = x + y * FMX;
+
+        Clear(x + y * FMX);
+
+        for (int d = 0; d < 4; d++)
+        {
+            int dx = DX[d], dy = DY[d];
+            int x2 = x + dx;
+            int y2 = y + dy;
+            if (OnBoundary(x2, y2)) continue;
+
+            Clear(x2 + y2 * FMX);
+            //if(observed != null)
+            //    observed[x + y * FMX] = tileIndex;
+        }
+
+        NewMethod(index, tileIndex);
+
     }
 
     protected override bool OnBoundary(int x, int y) => !periodic && (x < 0 || y < 0 || x >= FMX || y >= FMY);
