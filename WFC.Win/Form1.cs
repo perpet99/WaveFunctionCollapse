@@ -312,7 +312,7 @@ namespace WFC.Win
                         model.Clear(sx, sy);
                         model.SelectTile(sx, sy, tIndex);
                     }
-                    else if()
+                    else if(sx == 2 && sy == 2)
                     {
 
                     }
