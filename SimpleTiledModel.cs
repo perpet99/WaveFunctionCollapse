@@ -203,9 +203,17 @@ class SimpleTiledModel : Model
                 for (int st = 0; st < ST; st++) 
                     propagator[d][t1][st] = sp[st];
             }
+
+
+        if (wave == null)
+        {
+            Init();
+            Clear();
+        }
+
     }
 
-    internal void Select(int x, int y, int tileIndex)
+    internal void ChangeTile(int x, int y, int tileIndex)
     {
 
 
@@ -225,11 +233,29 @@ class SimpleTiledModel : Model
             //    observed[x + y * FMX] = tileIndex;
         }
 
-        NewMethod(index, tileIndex);
+        SelectTile(index, tileIndex);
 
     }
 
     protected override bool OnBoundary(int x, int y) => !periodic && (x < 0 || y < 0 || x >= FMX || y >= FMY);
+
+
+    public Bitmap Graphics( int sx,int sy, int[] s, int sw,int sh)
+    {
+        if (observed != null)
+        {
+            for (int y = 0; y < sh; y++)
+            {
+
+                int si = sw * y;
+                int di = (sx + sy * FMX) + FMX * y;
+
+                Array.Copy(s, si, observed, di, sw);
+            }
+        }
+
+        return Graphics();
+    }
 
     public override Bitmap Graphics()
     {

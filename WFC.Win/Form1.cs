@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -287,15 +288,60 @@ namespace WFC.Win
 
             //Pro.Propagator.SeletctPattern(x + y * 20, 1);
 
-            Model.Select(x, y, listView1.SelectedIndices[0]);
+            //Model.ChangeTile(x, y, listView1.SelectedIndices[0]);
 
-            Model.Run2(0, 0, aaaa);
+            //Model.Run2(0, 0, aaaa);
+
+
+            SimpleTiledModel model;
+            model = new SimpleTiledModel("Summer", null, 5, 5, false, false);
+
+            model.Clear(2, 2);
+            model.SelectTile(2, 2, listView1.SelectedIndices[0]);
+
+            for (int sy = 0; sy < 5; sy++)
+            {
+                for (int sx = 0; sx < 5; sx++)
+                {
+                    if( sx == 0 || sx == 4 || sy == 0 || sy == 4)
+                    {
+                        int i = sx + x - 2 + (sy + y - 2) * Model.FMX;
+                        
+                        
+                        int tIndex = Model.observed[ i];
+                        model.Clear(sx, sy);
+                        model.SelectTile(sx, sy, tIndex);
+                    }
+                    else if()
+                    {
+
+                    }
+                    else
+                    {
+                        model.Clear(sx, sy);
+                    }
+                }
+            }
+
+            var r = model.Run2(0, 0, (int index)=>{ 
+            
+            
+                
+            
+            
+            });
+
+            Debug.WriteLine(r.ToString());
+
+
 
             //Pro.Export("test.png");
+            model.MakeObserved();
 
-            //Model.Graphics().Save($"output.png");
-            //pictureBox1.Image = FromImage($"output.png");
-            //pictureBox1.Update();
+            Model.Graphics(x-2,y-2,model.observed,5,5).Save($"output.png");
+
+            pictureBox1.Image = FromImage($"output.png");
+            pictureBox1.Update();
 
         }
 

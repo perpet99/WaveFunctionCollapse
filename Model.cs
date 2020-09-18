@@ -18,14 +18,14 @@ abstract class Model
     int[][][] compatible;
 
 
-    protected int[] observed;
+    public int[] observed;
     
     /// <summary>  i,t </summary>
     (int, int)[] stack;
     int stacksize;
 
     protected Random random;
-    protected int FMX, FMY, T;
+    public int FMX, FMY, T;
     protected bool periodic;
 
     protected double[] weights;
@@ -41,7 +41,7 @@ abstract class Model
         FMY = height;
     }
 
-    void Init()
+    protected void Init()
     {
         wave = new bool[FMX * FMY][];
         compatible = new int[wave.Length][][];
@@ -103,20 +103,24 @@ abstract class Model
 
         if (argmin == -1)
         {
-            observed = new int[FMX * FMY];
-            for (int i = 0; i < wave.Length; i++)
-                for (int t = 0; t < T; t++)
-                    if (wave[i][t])
-                    {
-                        observed[i] = t;
-                        break;
-                    }
+            MakeObserved();
             return true;
         }
 
         return null;
     }
 
+    public void MakeObserved()
+    {
+        observed = new int[FMX * FMY];
+        for (int i = 0; i < wave.Length; i++)
+            for (int t = 0; t < T; t++)
+                if (wave[i][t])
+                {
+                    observed[i] = t;
+                    break;
+                }
+    }
     void Observe2(int argmin,int r = -1)
     { 
         if( r == -1)
@@ -175,11 +179,7 @@ abstract class Model
     }
     internal bool Run2(int seed, int limit, Action<int> action)
     {
-        if (wave == null)
-        {
-            Init();
-            Clear();
-        }
+       
 
         random = new Random(seed);
 
@@ -192,7 +192,7 @@ abstract class Model
             if (result != null)
                 return (bool)result;
 
-           NewMethod(index, -1);
+           SelectTile(index, -1);
 
             action(index);
         }
@@ -200,7 +200,13 @@ abstract class Model
         return true;
       
     }
-    public void NewMethod(int index, int t)
+
+    public void SelectTile(int x,int y, int t)
+    {
+        SelectTile(x + y * FMX, t);
+    }
+
+    public void SelectTile(int index, int t)
     {
         Observe2(index,t);
 
@@ -226,6 +232,9 @@ abstract class Model
 
     protected void Ban(int i, int t)
     {
+        if (sumsOfOnes[i] == 1)
+            return;
+
         wave[i][t] = false;
 
         int[] comp = compatible[i][t];
@@ -249,7 +258,12 @@ abstract class Model
         }
     }
 
-    protected void Clear(int i)
+    public void Clear(int x,int y)
+    {
+        Clear(x + y * FMX);
+    }
+
+    public void Clear(int i)
     {
         for (int t = 0; t < T; t++)
         {
